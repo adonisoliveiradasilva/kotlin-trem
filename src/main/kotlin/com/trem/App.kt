@@ -5,6 +5,7 @@ import com.trem.application.adapter.out.persistence.MemoriaReservaAdapter
 import com.trem.application.adapter.out.persistence.PostgresJdbcTemplateReservaAdapter
 import com.trem.application.adapter.out.persistence.PostgresReservaAdapter
 import com.trem.application.domain.ReservarAssentoService
+import com.trem.application.domain.VerAssentoService
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 
 fun main() {
@@ -33,8 +34,12 @@ fun main() {
     // =========================================================================
     // O RESTO DO SISTEMA NÃO MUDA NADA!
     // =========================================================================
-    val servico = ReservarAssentoService(repositorio)
-    val terminal = TerminalController(servico)
+    // Como 'repositorio' assina os dois contratos, podemos passá-lo para os dois serviços:
+    val servicoReserva = ReservarAssentoService(repositorio)
+    val servicoVerAssentos = VerAssentoService(repositorio)
+    
+    // E entregamos os dois serviços para o Terminal:
+    val terminal = TerminalController(servicoReserva, servicoVerAssentos)
 
     terminal.iniciar()
 }
