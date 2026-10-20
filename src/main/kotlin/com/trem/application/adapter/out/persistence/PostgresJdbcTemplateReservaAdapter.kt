@@ -2,30 +2,37 @@ package com.trem.application.adapter.out.persistence
 
 import com.trem.application.domain.Assento
 import com.trem.application.domain.Reserva
+import com.trem.application.port.out.AssentoRepository
 import com.trem.application.port.out.ReservaRepository
+import org.springframework.jdbc.core.JdbcTemplate
 import javax.sql.DataSource
 
 class PostgresJdbcTemplateReservaAdapter(
-    private val dataSource: DataSource
-) : ReservaRepository {
+    dataSource: DataSource
+) : ReservaRepository, AssentoRepository {
+
+    // Instanciamos a ferramenta do Spring usando o seu dataSource!
+    private val jdbcTemplate = JdbcTemplate(dataSource)
 
     override fun buscarAssento(numero: String): Assento? {
         val sql = "SELECT numero, ocupado FROM assentos WHERE numero = ?"
+        return jdbcTemplate.query(sql, { rs, _ ->
+            Assento(
+                numero = rs.getString("numero"),
+                ocupado = rs.getBoolean("ocupado")
+            )
+        }, numero).firstOrNull()
+    }
 
-        return dataSource.connection.use { connection ->
-            connection.prepareStatement(sql).use { statement ->
-                statement.setString(1, numero)
-                statement.executeQuery().use { rs ->
-                    if (rs.next()) {
-                        Assento(
-                            numero = rs.getString("numero"),
-                            ocupado = rs.getBoolean("ocupado")
-                        )
-                    } else {
-                        null
-                    }
-                }
-            }
+    override fun verAssentos(): List<Assento> {
+        // SQL corrigido com o WHERE!
+        val sql = "SELECT numero, ocupado FROM assentos ORDER BY numero"
+        
+        return jdbcTemplate.query(sql) { rs, _ ->
+            Assento(
+                numero = rs.getString("numero"),
+                ocupado = rs.getBoolean("ocupado")
+            )
         }
     }
 
@@ -33,18 +40,9 @@ class PostgresJdbcTemplateReservaAdapter(
         val sqlAtualizarAssento = "UPDATE assentos SET ocupado = true WHERE numero = ?"
         val sqlInserirReserva = "INSERT INTO reservas (passageiro, assento_numero) VALUES (?, ?)"
 
-        dataSource.connection.use { connection ->
-            connection.prepareStatement(sqlAtualizarAssento).use { statement ->
-                statement.setString(1, reserva.assentoReservado.numero)
-                statement.executeUpdate()
-            }
-            connection.prepareStatement(sqlInserirReserva).use { statement ->
-                statement.setString(1, reserva.passageiro)
-                statement.setString(2, reserva.assentoReservado.numero)
-                statement.executeUpdate()
-            }
-        }
-
+        jdbcTemplate.update(sqlAtualizarAssento, reserva.assentoReservado.numero)
+        jdbcTemplate.update(sqlInserirReserva, reserva.passageiro, reserva.assentoReservado.numero)
+        
         println("\n[LOG DO JDBCTEMPLATE] -> Reserva salva no Postgres com código enxuto!")
     }
 }

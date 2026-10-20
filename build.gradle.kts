@@ -19,6 +19,8 @@ dependencies {
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.netty)
     implementation(libs.logback.classic)
+    implementation("io.javalin:javalin:6.1.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.1")
     implementation("org.springframework:spring-jdbc:6.1.13")
     implementation("org.postgresql:postgresql:42.7.4")
     testImplementation(kotlin("test"))

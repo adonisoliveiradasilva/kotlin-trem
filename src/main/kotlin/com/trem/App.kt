@@ -1,10 +1,13 @@
 package com.trem
 
 import com.trem.application.adapter.`in`.cli.TerminalController
+import com.trem.application.adapter.`in`.web.TremRestController
 import com.trem.application.adapter.out.persistence.MemoriaReservaAdapter
 import com.trem.application.adapter.out.persistence.PostgresJdbcTemplateReservaAdapter
 import com.trem.application.adapter.out.persistence.PostgresReservaAdapter
 import com.trem.application.domain.ReservarAssentoService
+import com.trem.application.domain.VerAssentosService
+import io.javalin.Javalin
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 
 fun main() {
@@ -23,18 +26,19 @@ fun main() {
     // )
 
     // OPÇÃO 3: Postgres com Spring JdbcTemplate (ATIVA AGORA!)
-    val dataSource = DriverManagerDataSource(
-        "jdbc:postgresql://localhost:5433/trem_db",
-        "postgres",
-        "1234"
-    )
+    val url = "jdbc:postgresql://localhost:5433/trem_db"
+    val usuario = "postgres"
+    val senha = "1234"
+
+    // 1. Adaptador de Saída (Banco de Dados)
+    val dataSource = DriverManagerDataSource(url, usuario, senha)
     val repositorio = PostgresJdbcTemplateReservaAdapter(dataSource)
+    val servicoReserva = ReservarAssentoService(repositorio)
+    val servicoVerAssentos = VerAssentosService(repositorio)
 
-    // =========================================================================
-    // O RESTO DO SISTEMA NÃO MUDA NADA!
-    // =========================================================================
-    val servico = ReservarAssentoService(repositorio)
-    val terminal = TerminalController(servico)
-
-    terminal.iniciar()
+    val app = Javalin.create().start(8080)
+    val webController = TremRestController(servicoReserva, servicoVerAssentos)
+    webController.registrarRotas(app)
+ 
+   println("🚀 API rodando! Teste no Insomnia em: http://localhost:8080")
 }
