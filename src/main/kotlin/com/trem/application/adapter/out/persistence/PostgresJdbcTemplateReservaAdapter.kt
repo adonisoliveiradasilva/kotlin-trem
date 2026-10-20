@@ -16,17 +16,6 @@ class PostgresJdbcTemplateReservaAdapter(
 
     private val jdbcTemplate = JdbcTemplate(dataSource)
 
-    // 1. Método exigido pelo contrato AssentoRepository:
-    override fun listarAssentosDisponiveis(): List<Assento> {
-        val sql = "SELECT numero, ocupado FROM assentos WHERE ocupado = false ORDER BY numero"
-        return jdbcTemplate.query(sql) { rs, _ ->
-            Assento(
-                numero = rs.getString("numero"),
-                ocupado = rs.getBoolean("ocupado")
-            )
-        }
-    }
-
     // 2. Métodos que já existiam do contrato ReservaRepository:
     override fun buscarAssento(numero: String): Assento? {
         val sql = "SELECT numero, ocupado FROM assentos WHERE numero = ?"
