@@ -7,13 +7,27 @@ import com.trem.application.port.out.ReservaRepository
 import org.springframework.jdbc.core.JdbcTemplate
 import javax.sql.DataSource
 
+// Olhe a mágica aqui: a MESMA classe implementa as DUAS Portas de Saída!
 class PostgresJdbcTemplateReservaAdapter(
     dataSource: DataSource
 ) : ReservaRepository, AssentoRepository {
 
     // Instanciamos a ferramenta do Spring usando o seu dataSource!
+
     private val jdbcTemplate = JdbcTemplate(dataSource)
 
+    // 1. Método exigido pelo contrato AssentoRepository:
+    override fun listarAssentosDisponiveis(): List<Assento> {
+        val sql = "SELECT numero, ocupado FROM assentos WHERE ocupado = false ORDER BY numero"
+        return jdbcTemplate.query(sql) { rs, _ ->
+            Assento(
+                numero = rs.getString("numero"),
+                ocupado = rs.getBoolean("ocupado")
+            )
+        }
+    }
+
+    // 2. Métodos que já existiam do contrato ReservaRepository:
     override fun buscarAssento(numero: String): Assento? {
         val sql = "SELECT numero, ocupado FROM assentos WHERE numero = ?"
         return jdbcTemplate.query(sql, { rs, _ ->
