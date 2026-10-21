@@ -7,8 +7,8 @@ class VerAssentoService(
     private val assentoRepository: AssentoRepository
 ) : VerAssentosUseCase {
 
-    override fun verAssentosDisponiveis(): List<Assento> {
-        val assentos = assentoRepository.listarAssentosDisponiveis()
+    override fun verAssentos(): List<Assento> {
+        val assentos = assentoRepository.verAssentos()
 
         // Regra de Negócio: e se o vagão inteiro já estiver vendido?
         if (assentos.isEmpty()) {

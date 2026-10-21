@@ -23,7 +23,7 @@ class TerminalController(
 
             try {
                 // 1. Chama o novo Caso de Uso para listar os assentos disponíveis
-                val assentos = verAssentosUseCase.verAssentosDisponiveis()
+                val assentos = verAssentosUseCase.verAssentos()
 
                 println("\nAssentos disponíveis no momento:")
                 for (assento in assentos) {
